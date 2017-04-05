@@ -84,20 +84,7 @@
             <property name="x">5</property>
             <property name="y">234</property>
           </packing>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <property name="width_request">100</property>
-            <property name="height_request">30</property>
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Shutter speed</property>
-          </object>
-          <packing>
-            <property name="x">5</property>
-            <property name="y">289</property>
-          </packing>
-        </child>
+        </child>        
         <child>
           <object class="GtkComboBox" id="ContrastCombo">
             <property name="width_request">100</property>
@@ -145,19 +132,7 @@
             <property name="x">117</property>
             <property name="y">229</property>
           </packing>
-        </child>
-        <child>
-          <object class="GtkComboBox" id="ShutterSpeedCombo">
-            <property name="width_request">100</property>
-            <property name="height_request">34</property>
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-          </object>
-          <packing>
-            <property name="x">117</property>
-            <property name="y">286</property>
-          </packing>
-        </child>
+        </child>       
         <child>
           <object class="GtkLabel">
             <property name="width_request">100</property>
