@@ -65,7 +65,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="MakeACameraWithPiZero.glade" />
+    <EmbeddedResource Include="MakeACameraWithPiZero.glade">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -386,6 +388,16 @@
       <ItemGroup>
         <Reference Include="MMALSharp">
           <HintPath>..\packages\MMALSharp\lib\net452\MMALSharp.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="MMALSharp.Common">
+          <HintPath>..\packages\MMALSharp\lib\net452\MMALSharp.Common.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="MMALSharp.FFmpeg">
+          <HintPath>..\packages\MMALSharp\lib\net452\MMALSharp.FFmpeg.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>

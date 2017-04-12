@@ -6,4 +6,3 @@ nuget GtkSharp ~> 3.1.3
 nuget Raspberry.IO.GeneralPurpose ~> 2.4
 nuget Raspberry.System ~> 2.0.0
 nuget MMALSharp
-nuget Nito.AsyncEx ~> 3.0.1

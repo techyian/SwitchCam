@@ -48,11 +48,15 @@ namespace MakeACameraWithPiZero
 
         public MMALCamera Camera = MMALCamera.Instance;
 
+        public ImageStreamCaptureHandler Handler { get; set; }
+
+        public MMALImageEncoder Encoder { get; set; }
+
         public bool ReloadConfig { get; set; }
                         
         public static ConfigForm Create()
         {
-            Builder builder = new Builder(null, "MakeACameraWithPiZero.glade", null);
+            Builder builder = new Builder(null, "MakeACameraWithPiZero.MakeACameraWithPiZero.glade", null);
             return new ConfigForm(builder, builder.GetObject("ConfigWindow").Handle);
         }
 
@@ -64,8 +68,11 @@ namespace MakeACameraWithPiZero
             _builder = builder;
             builder.Autoconnect(this);
 
-            //Create our component pipeline.                
-            this.Camera.AddEncoder(new MMALImageEncoder(), this.Camera.Camera.StillPort)
+            //Create our component pipeline.        
+            this.Handler = new ImageStreamCaptureHandler("/home/pi/images/makeacamera", "jpg");
+            this.Encoder = new MMALImageEncoder(this.Handler);
+                    
+            this.Camera.AddEncoder(this.Encoder, this.Camera.Camera.StillPort)
                .CreatePreviewComponent(new MMALNullSinkComponent())
                .ConfigureCamera();
 
@@ -88,7 +95,7 @@ namespace MakeACameraWithPiZero
 
                       AsyncContext.Run(async () =>
                       {
-                          await this.Camera.TakeSinglePicture(new StreamCaptureResult(File.Create(string.Format("/home/pi/{0}.jpg", DateTime.Now.ToString("dd-MMM-yy HH-mm-ss")))), null);
+                          await this.Camera.TakePicture(this.Camera.Camera.StillPort, this.Camera.Camera.StillPort);
                       });                      
                   });
 
@@ -245,7 +252,8 @@ namespace MakeACameraWithPiZero
         private void OnDestroy(object o, DeleteEventArgs args)
         {
             Console.WriteLine("OnDestroy");
-            this.Camera.Dispose();
+            this.Encoder.Dispose();
+            this.Camera.Cleanup();
             this.ButtonConnection.Close();
             Application.Quit();
         }
