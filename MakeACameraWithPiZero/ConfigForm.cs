@@ -1,84 +1,70 @@
-﻿using Gtk;
+﻿using System;
+using System.Threading.Tasks;
+using Gtk;
 using MMALSharp;
 using MMALSharp.Components;
 using MMALSharp.Handlers;
 using MMALSharp.Native;
 using Nito.AsyncEx;
 using Raspberry.IO.GeneralPurpose;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MakeACameraWithPiZero
 {
     public class ConfigForm : Window
     {
+        const ConnectorPin buttonPin = ConnectorPin.P1Pin22;
+
         /// <summary> Used to load in the glade file resource as a window. </summary>
         private Builder _builder;
 
         [Builder.Object]
-        private ComboBox SharpnessCombo;
+        private ComboBox _sharpnessCombo;
 
         [Builder.Object]
-        private ComboBox ContrastCombo;
+        private ComboBox _contrastCombo;
 
         [Builder.Object]
-        private ComboBox BrightnessCombo;
+        private ComboBox _brightnessCombo;
 
         [Builder.Object]
-        private ComboBox SaturationCombo;
+        private ComboBox _saturationCombo;
 
         [Builder.Object]
-        private ComboBox ISOCombo;
+        private ComboBox _isoCombo;
 
         [Builder.Object]
-        private ComboBox EffectsCombo;
+        private ComboBox _effectsCombo;
 
         [Builder.Object]
-        private ComboBox ImageSizeCombo;
+        private ComboBox _imageSizeCombo;
 
-        public GpioConnection ButtonConnection { get; set; }
+        private GpioConnection _buttonConnection;
 
-        const ConnectorPin buttonPin = ConnectorPin.P1Pin29;
-
-
-        public MMALCamera Camera = MMALCamera.Instance;
-
-        public ImageStreamCaptureHandler Handler { get; set; }
-
-        public MMALImageEncoder Encoder { get; set; }
+        public MMALCamera MMALCamera = MMALCamera.Instance;
 
         public bool ReloadConfig { get; set; }
-                        
+
         public static ConfigForm Create()
         {
             Builder builder = new Builder(null, "MakeACameraWithPiZero.MakeACameraWithPiZero.glade", null);
             return new ConfigForm(builder, builder.GetObject("ConfigWindow").Handle);
         }
 
-        /// <summary> Specialised constructor for use only by derived class. </summary>
+        /// <summary>Specialised constructor for use only by derived class.</summary>
         /// <param name="builder"> The builder. </param>
         /// <param name="handle">  The handle. </param>
         protected ConfigForm(Builder builder, IntPtr handle) : base(handle)
-        {            
-            _builder = builder;
+        {
+            Application.Init();
+
+            this._builder = builder;
             builder.Autoconnect(this);
 
-            //Create our component pipeline.        
-            this.Handler = new ImageStreamCaptureHandler("/home/pi/images/makeacamera", "jpg");
-            this.Encoder = new MMALImageEncoder(this.Handler);
-                    
-            this.Camera.AddEncoder(this.Encoder, this.Camera.Camera.StillPort)
-               .CreatePreviewComponent(new MMALNullSinkComponent())
-               .ConfigureCamera();
+            this.ConfigureButton();
+            this.InitialiseComboBoxes();
+            this.SetupHandlers();
 
-            ConfigureButton();
-            InitialiseComboBoxes();
-            SetupHandlers();
+            Application.Run();
         }
 
         private void ConfigureButton()
@@ -91,101 +77,115 @@ namespace MakeACameraWithPiZero
                   .OnStatusChanged(b =>
                   {
                       Console.WriteLine("Button switched {0}", b ? "on" : "off");
-                      MMALCameraConfig.Reload();
 
                       AsyncContext.Run(async () =>
                       {
-                          await this.Camera.TakePicture(this.Camera.Camera.StillPort, this.Camera.Camera.StillPort);
-                      });                      
+                          using (var imgCaptureHandler = new ImageStreamCaptureHandler("/home/pi/images/", "jpg"))
+                          using (var imgEncoder = new MMALImageEncoder(imgCaptureHandler))
+                          using (var nullSink = new MMALNullSinkComponent())
+                          {
+                              this.MMALCamera.ConfigureCameraSettings();
+
+                              // Create our component pipeline.
+                              imgEncoder.ConfigureOutputPort(0, MMALEncoding.JPEG, MMALEncoding.I420, 90);
+
+                              this.MMALCamera.Camera.StillPort.ConnectTo(imgEncoder);
+                              this.MMALCamera.Camera.PreviewPort.ConnectTo(nullSink);
+
+                              // Camera warm up time
+                              await Task.Delay(2000);
+                              await this.MMALCamera.BeginProcessing(this.MMALCamera.Camera.StillPort);
+                          }
+                      });
                   });
 
-            this.ButtonConnection = new GpioConnection(switchButton);            
+            this._buttonConnection = new GpioConnection(switchButton);
         }
 
         private void InitialiseComboBoxes()
         {
-            //Sharpness ComboBox
+            // Sharpness ComboBox
             var sharpnessModel = new ListStore(typeof(int),
                                                typeof(string));
 
-            this.SharpnessCombo.Model = sharpnessModel;
+            this._sharpnessCombo.Model = sharpnessModel;
 
-            for(int i = 0; i <= 10; i++)
+            for (int i = 0; i <= 10; i++)
             {
                 sharpnessModel.AppendValues(i * 10, (i * 10).ToString());
             }
 
-            //Set the default value for this combo box
-            this.SharpnessCombo.Active = 4;
-                        
-            //Contrast ComboBox
+            // Set the default value for this combo box
+            this._sharpnessCombo.Active = 4;
+
+            // Contrast ComboBox
             var contrastModel = new ListStore(typeof(int),
                                               typeof(string));
 
-            this.ContrastCombo.Model = contrastModel;
+            this._contrastCombo.Model = contrastModel;
 
             for (int i = 0; i <= 10; i++)
             {
                 contrastModel.AppendValues(i * 10, (i * 10).ToString());
             }
-                        
-            this.ContrastCombo.Active = 4;
 
-            //Brightness ComboBox
+            this._contrastCombo.Active = 4;
+
+            // Brightness ComboBox
             var brightnessModel = new ListStore(typeof(int),
                                                 typeof(string));
 
-            this.BrightnessCombo.Model = brightnessModel;
+            this._brightnessCombo.Model = brightnessModel;
 
             for (int i = 0; i <= 10; i++)
             {
                 brightnessModel.AppendValues(i * 10, (i * 10).ToString());
             }
 
-            this.BrightnessCombo.Active = 4;
+            this._brightnessCombo.Active = 4;
 
-            //Saturation ComboBox
+            // Saturation ComboBox
             var saturationModel = new ListStore(typeof(int),
                                                 typeof(string));
 
-            this.SaturationCombo.Model = saturationModel;
+            this._saturationCombo.Model = saturationModel;
 
             for (int i = 0; i <= 10; i++)
             {
                 saturationModel.AppendValues(i * 10, (i * 10).ToString());
             }
 
-            this.SaturationCombo.Active = 4;
+            this._saturationCombo.Active = 4;
 
-            //ISO ComboBox
+            // ISO ComboBox
             var isoModel = new ListStore(typeof(int),
                                          typeof(string));
 
-            this.ISOCombo.Model = isoModel;
+            this._isoCombo.Model = isoModel;
 
             isoModel.AppendValues(100, "100");
             isoModel.AppendValues(200, "200");
             isoModel.AppendValues(400, "400");
             isoModel.AppendValues(800, "800");
 
-            this.ISOCombo.Active = 0;
-                        
-            //Effects ComboBox
+            this._isoCombo.Active = 0;
+
+            // Effects ComboBox
             var effectsModel = new ListStore(typeof(int),
                                              typeof(string));
 
-            this.EffectsCombo.Model = effectsModel;
+            this._effectsCombo.Model = effectsModel;
 
-            foreach(MMAL_PARAM_IMAGEFX_T effect in Enum.GetValues(typeof(MMAL_PARAM_IMAGEFX_T)))
+            foreach (MMAL_PARAM_IMAGEFX_T effect in Enum.GetValues(typeof(MMAL_PARAM_IMAGEFX_T)))
             {
                 effectsModel.AppendValues(effect, effect.ToString());
             }
 
-            //Image size ComboBox
+            // Image size ComboBox
             var imageSizeModel = new ListStore(typeof(string),
                                                typeof(string));
 
-            this.ImageSizeCombo.Model = imageSizeModel;
+            this._imageSizeCombo.Model = imageSizeModel;
 
             imageSizeModel.AppendValues("3264,2448", "8 Megapixel");
             imageSizeModel.AppendValues("3072,2304", "7 Megapixel");
@@ -197,21 +197,20 @@ namespace MakeACameraWithPiZero
             imageSizeModel.AppendValues("1280,960", "1 Megapixel");
             imageSizeModel.AppendValues("640,480", "0.3 Megapixel");
 
-            this.ImageSizeCombo.Active = 0;
-
+            this._imageSizeCombo.Active = 0;
         }
 
         /// <summary> Sets up the handlers. </summary>
         private void SetupHandlers()
         {
             this.DeleteEvent += new DeleteEventHandler(this.OnDestroy);
-            this.SharpnessCombo.Changed += new EventHandler(this.OnSharpnessChanged);
-            this.ContrastCombo.Changed += new EventHandler(this.OnContrastChanged);
-            this.BrightnessCombo.Changed += new EventHandler(this.OnBrightnessChanged);
-            this.SaturationCombo.Changed += new EventHandler(this.OnSaturationChanged);
-            this.ISOCombo.Changed += new EventHandler(this.OnISOChanged);            
-            this.EffectsCombo.Changed += new EventHandler(this.OnEffectChanged);
-            this.ImageSizeCombo.Changed += new EventHandler(this.OnImageSizeChanged);
+            this._sharpnessCombo.Changed += new EventHandler(this.OnSharpnessChanged);
+            this._contrastCombo.Changed += new EventHandler(this.OnContrastChanged);
+            this._brightnessCombo.Changed += new EventHandler(this.OnBrightnessChanged);
+            this._saturationCombo.Changed += new EventHandler(this.OnSaturationChanged);
+            this._isoCombo.Changed += new EventHandler(this.OnISOChanged);
+            this._effectsCombo.Changed += new EventHandler(this.OnEffectChanged);
+            this._imageSizeCombo.Changed += new EventHandler(this.OnImageSizeChanged);
         }
 
         public void OnSharpnessChanged(object o, EventArgs args)
@@ -249,14 +248,12 @@ namespace MakeACameraWithPiZero
             this.ReloadConfig = true;
         }
 
-        private void OnDestroy(object o, DeleteEventArgs args)
+        public void OnDestroy(object o, DeleteEventArgs args)
         {
             Console.WriteLine("OnDestroy");
-            this.Encoder.Dispose();
-            this.Camera.Cleanup();
-            this.ButtonConnection.Close();
+            this.MMALCamera.Cleanup();
+            this._buttonConnection.Close();
             Application.Quit();
         }
-
     }
 }
