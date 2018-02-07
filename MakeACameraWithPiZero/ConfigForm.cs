@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Glade;
 using Gtk;
 using MMALSharp;
 using MMALSharp.Components;
@@ -10,32 +11,32 @@ using Raspberry.IO.GeneralPurpose;
 
 namespace MakeACameraWithPiZero
 {
-    public class ConfigForm : Window
+    public class ConfigForm
     {
         const ConnectorPin buttonPin = ConnectorPin.P1Pin22;
 
         /// <summary> Used to load in the glade file resource as a window. </summary>
-        private Builder _builder;
+        private Glade.XML _builder;
 
-        [Builder.Object]
+        [Widget]
         private ComboBox _sharpnessCombo;
 
-        [Builder.Object]
+        [Widget]
         private ComboBox _contrastCombo;
 
-        [Builder.Object]
+        [Widget]
         private ComboBox _brightnessCombo;
 
-        [Builder.Object]
+        [Widget]
         private ComboBox _saturationCombo;
 
-        [Builder.Object]
+        [Widget]
         private ComboBox _isoCombo;
 
-        [Builder.Object]
+        [Widget]
         private ComboBox _effectsCombo;
 
-        [Builder.Object]
+        [Widget]
         private ComboBox _imageSizeCombo;
 
         private GpioConnection _buttonConnection;
@@ -46,14 +47,14 @@ namespace MakeACameraWithPiZero
 
         public static ConfigForm Create()
         {
-            Builder builder = new Builder(null, "MakeACameraWithPiZero.MakeACameraWithPiZero.glade", null);
-            return new ConfigForm(builder, builder.GetObject("ConfigWindow").Handle);
+            Glade.XML gxml = new Glade.XML(null, "MakeACameraWithPiZero.MakeACameraWithPiZero.glade", "window1", null);
+            return new ConfigForm(gxml);
         }
 
         /// <summary>Specialised constructor for use only by derived class.</summary>
         /// <param name="builder"> The builder. </param>
         /// <param name="handle">  The handle. </param>
-        protected ConfigForm(Builder builder, IntPtr handle) : base(handle)
+        protected ConfigForm(Glade.XML builder)
         {
             Application.Init();
 
@@ -202,8 +203,8 @@ namespace MakeACameraWithPiZero
 
         /// <summary> Sets up the handlers. </summary>
         private void SetupHandlers()
-        {
-            this.DeleteEvent += new DeleteEventHandler(this.OnDestroy);
+        {            
+            //this.DeleteEvent += new DeleteEventHandler(this.OnDestroy);
             this._sharpnessCombo.Changed += new EventHandler(this.OnSharpnessChanged);
             this._contrastCombo.Changed += new EventHandler(this.OnContrastChanged);
             this._brightnessCombo.Changed += new EventHandler(this.OnBrightnessChanged);
