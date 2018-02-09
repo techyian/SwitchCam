@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Glade;
 using Gtk;
 using MMALSharp;
 using MMALSharp.Components;
@@ -11,64 +10,67 @@ using Raspberry.IO.GeneralPurpose;
 
 namespace MakeACameraWithPiZero
 {
-    public class ConfigForm
+    public class ConfigForm : Window
     {
         const ConnectorPin buttonPin = ConnectorPin.P1Pin22;
 
         /// <summary> Used to load in the glade file resource as a window. </summary>
-        private Glade.XML _builder;
+        private Builder _builder;
 
-        [Widget]
+        [Builder.Object]
+        private Window _scrolledwindow1;
+
+        [Builder.Object]
         private ComboBox _sharpnessCombo;
 
-        [Widget]
+        [Builder.Object]
         private ComboBox _contrastCombo;
 
-        [Widget]
+        [Builder.Object]
         private ComboBox _brightnessCombo;
 
-        [Widget]
+        [Builder.Object]
         private ComboBox _saturationCombo;
 
-        [Widget]
+        [Builder.Object]
         private ComboBox _isoCombo;
 
-        [Widget]
+        [Builder.Object]
         private ComboBox _effectsCombo;
 
-        [Widget]
+        [Builder.Object]
         private ComboBox _imageSizeCombo;
 
         private GpioConnection _buttonConnection;
 
-        public MMALCamera MMALCamera = MMALCamera.Instance;
+        //public MMALCamera MMALCamera = MMALCamera.Instance;
 
         public bool ReloadConfig { get; set; }
 
         public static ConfigForm Create()
         {
-            Glade.XML gxml = new Glade.XML(null, "MakeACameraWithPiZero.MakeACameraWithPiZero.glade", "window1", null);
-            return new ConfigForm(gxml);
+            Builder builder = new Builder(null, "MakeACameraWithPiZero.MakeACameraWithPiZero.glade", null);
+            return new ConfigForm(builder, builder.GetObject("window1").Handle);
         }
 
         /// <summary>Specialised constructor for use only by derived class.</summary>
         /// <param name="builder"> The builder. </param>
         /// <param name="handle">  The handle. </param>
-        protected ConfigForm(Glade.XML builder)
+        protected ConfigForm(Builder builder, IntPtr handle) : base(handle)
         {
             Application.Init();
 
             this._builder = builder;
             builder.Autoconnect(this);
-
-            this.ConfigureButton();
+                        
+            //this.ConfigureButton();
             this.InitialiseComboBoxes();
             this.SetupHandlers();
 
             Application.Run();
         }
 
-        private void ConfigureButton()
+        /*private void ConfigureButton()
         {
             var switchButton = buttonPin.Input()
                   .Name("Switch")
@@ -101,7 +103,7 @@ namespace MakeACameraWithPiZero
                   });
 
             this._buttonConnection = new GpioConnection(switchButton);
-        }
+        }*/
 
         private void InitialiseComboBoxes()
         {
@@ -203,8 +205,8 @@ namespace MakeACameraWithPiZero
 
         /// <summary> Sets up the handlers. </summary>
         private void SetupHandlers()
-        {            
-            //this.DeleteEvent += new DeleteEventHandler(this.OnDestroy);
+        {
+            this.DeleteEvent += this.OnDestroy;
             this._sharpnessCombo.Changed += new EventHandler(this.OnSharpnessChanged);
             this._contrastCombo.Changed += new EventHandler(this.OnContrastChanged);
             this._brightnessCombo.Changed += new EventHandler(this.OnBrightnessChanged);
@@ -252,8 +254,8 @@ namespace MakeACameraWithPiZero
         public void OnDestroy(object o, DeleteEventArgs args)
         {
             Console.WriteLine("OnDestroy");
-            this.MMALCamera.Cleanup();
-            this._buttonConnection.Close();
+            //this.MMALCamera.Cleanup();
+            //this._buttonConnection.Close();
             Application.Quit();
         }
     }

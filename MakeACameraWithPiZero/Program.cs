@@ -1,6 +1,4 @@
-﻿using Gtk;
-using Glade;
-using System;
+﻿using System;
 using Raspberry.IO.GeneralPurpose;
 using MMALSharp;
 using Nito.AsyncEx;
@@ -13,6 +11,7 @@ namespace MakeACameraWithPiZero
 {
     public class Program
     {
+        [STAThread]
         public static void Main(string[] args)
         {
             ConfigForm.Create();

@@ -1,217 +1,216 @@
 <?xml version="1.0"?>
-<glade-interface>
-  <!-- interface-requires gtk+ 2.16 -->
-  <!-- interface-naming-policy toplevel-contextual -->
-  <widget class="GtkWindow" id="window1">
+<interface>
+  <requires lib="gtk+" version="3.14"/>
+  <object class="GtkWindow" id="window1">
     <property name="visible">True</property>
     <property name="title" translatable="yes">SwitchCam</property>
     <property name="window_position">center</property>
     <property name="default_width">400</property>
     <property name="default_height">256</property>
     <child>
-      <widget class="GtkScrolledWindow" id="scrolledwindow1">
+      <object class="GtkScrolledWindow" id="scrolledwindow1">
         <property name="visible">True</property>
         <property name="can_focus">True</property>
         <property name="shadow_type">in</property>
         <child>
-          <widget class="GtkLayout" id="layout1">
+          <object class="GtkLayout" id="layout1">
             <property name="visible">True</property>
             <property name="hadjustment">0 0 400 10 212.40000000000001 236</property>
             <property name="vadjustment">0 0 400 10 212.40000000000001 236</property>
             <property name="width">400</property>
             <property name="height">400</property>
             <child>
-              <widget class="GtkButton" id="previewBtn">
+              <object class="GtkButton" id="previewBtn">
                 <property name="label" translatable="yes">Preview</property>
                 <property name="width_request">100</property>
                 <property name="height_request">50</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
-              </widget>
+              </object>
               <packing>
                 <property name="x">200</property>
                 <property name="y">10</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkButton" id="takePictureBtn">
+              <object class="GtkButton" id="takePictureBtn">
                 <property name="label" translatable="yes">Take picture</property>
                 <property name="width_request">100</property>
                 <property name="height_request">50</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
-              </widget>
+              </object>
               <packing>
                 <property name="x">310</property>
                 <property name="y">10</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="sharpnessLabel">
+              <object class="GtkLabel" id="sharpnessLabel">
                 <property name="width_request">100</property>
                 <property name="height_request">30</property>
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Sharpness</property>
-              </widget>
+              </object>
               <packing>
                 <property name="x">7</property>
                 <property name="y">10</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="contrastLabel">
+              <object class="GtkLabel" id="contrastLabel">
                 <property name="width_request">100</property>
                 <property name="height_request">27</property>
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Contrast</property>
-              </widget>
+              </object>
               <packing>
                 <property name="x">7</property>
                 <property name="y">67</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="brightnessLabel">
+              <object class="GtkLabel" id="brightnessLabel">
                 <property name="width_request">100</property>
                 <property name="height_request">27</property>
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Brightness</property>
-              </widget>
+              </object>
               <packing>
                 <property name="x">5</property>
                 <property name="y">121</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="saturationLabel">
+              <object class="GtkLabel" id="saturationLabel">
                 <property name="width_request">100</property>
                 <property name="height_request">27</property>
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Saturation</property>
-              </widget>
+              </object>
               <packing>
                 <property name="x">6</property>
                 <property name="y">176</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkComboBox" id="sharpnessCombo">
+              <object class="GtkComboBox" id="sharpnessCombo">
                 <property name="width_request">100</property>
                 <property name="height_request">34</property>
                 <property name="visible">True</property>
-              </widget>
+              </object>
               <packing>
                 <property name="x">116</property>
                 <property name="y">7</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="isoLabel">
+              <object class="GtkLabel" id="isoLabel">
                 <property name="width_request">100</property>
                 <property name="height_request">26</property>
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">ISO</property>
-              </widget>
+              </object>
               <packing>
                 <property name="x">5</property>
                 <property name="y">234</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkComboBox" id="contrastCombo">
+              <object class="GtkComboBox" id="contrastCombo">
                 <property name="width_request">100</property>
                 <property name="height_request">34</property>
                 <property name="visible">True</property>
-              </widget>
+              </object>
               <packing>
                 <property name="x">116</property>
                 <property name="y">62</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkComboBox" id="brightnessCombo">
+              <object class="GtkComboBox" id="brightnessCombo">
                 <property name="width_request">100</property>
                 <property name="height_request">34</property>
                 <property name="visible">True</property>
-              </widget>
+              </object>
               <packing>
                 <property name="x">117</property>
                 <property name="y">117</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkComboBox" id="saturationCombo">
+              <object class="GtkComboBox" id="saturationCombo">
                 <property name="width_request">100</property>
                 <property name="height_request">34</property>
                 <property name="visible">True</property>
-              </widget>
+              </object>
               <packing>
                 <property name="x">117</property>
                 <property name="y">173</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkComboBox" id="isoCombo">
+              <object class="GtkComboBox" id="isoCombo">
                 <property name="width_request">100</property>
                 <property name="height_request">34</property>
                 <property name="visible">True</property>
-              </widget>
+              </object>
               <packing>
                 <property name="x">117</property>
                 <property name="y">229</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="effectsLabel">
+              <object class="GtkLabel" id="effectsLabel">
                 <property name="width_request">100</property>
                 <property name="height_request">29</property>
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Effects</property>
-              </widget>
+              </object>
               <packing>
                 <property name="x">7</property>
                 <property name="y">290</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkComboBox" id="effectsCombo">
+              <object class="GtkComboBox" id="effectsCombo">
                 <property name="width_request">100</property>
                 <property name="height_request">34</property>
                 <property name="visible">True</property>
-              </widget>
+              </object>
               <packing>
                 <property name="x">118</property>
                 <property name="y">290</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="imageSizeLabel">
+              <object class="GtkLabel" id="imageSizeLabel">
                 <property name="width_request">100</property>
                 <property name="height_request">28</property>
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Image size</property>
-              </widget>
+              </object>
               <packing>
                 <property name="x">6</property>
                 <property name="y">350</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkComboBox" id="imageSizeCombo">
+              <object class="GtkComboBox" id="imageSizeCombo">
                 <property name="width_request">100</property>
                 <property name="height_request">34</property>
                 <property name="visible">True</property>
-              </widget>
+              </object>
               <packing>
                 <property name="x">118</property>
                 <property name="y">350</property>
               </packing>
             </child>
-          </widget>
+          </object>
         </child>
-      </widget>
+      </object>
     </child>
-  </widget>
-</glade-interface>
+  </object>
+</interface>
