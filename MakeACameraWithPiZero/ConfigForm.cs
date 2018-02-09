@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Gtk;
 using MMALSharp;
@@ -8,66 +10,70 @@ using MMALSharp.Native;
 using Nito.AsyncEx;
 using Raspberry.IO.GeneralPurpose;
 
-namespace MakeACameraWithPiZero
+namespace SwitchCam
 {
     public class ConfigForm : Window
     {
         const ConnectorPin buttonPin = ConnectorPin.P1Pin22;
 
-        /// <summary> Used to load in the glade file resource as a window. </summary>
-        private Builder _builder;
-
-        [Builder.Object]
-        private Window _scrolledwindow1;
-
-        [Builder.Object]
-        private ComboBox _sharpnessCombo;
-
-        [Builder.Object]
-        private ComboBox _contrastCombo;
-
-        [Builder.Object]
-        private ComboBox _brightnessCombo;
-
-        [Builder.Object]
-        private ComboBox _saturationCombo;
-
-        [Builder.Object]
-        private ComboBox _isoCombo;
-
-        [Builder.Object]
-        private ComboBox _effectsCombo;
-
-        [Builder.Object]
-        private ComboBox _imageSizeCombo;
-
         private GpioConnection _buttonConnection;
+
+        private HeaderBar _headerBar;
+        private TreeView _treeView;
+        private Box _boxContent;
+        private TreeStore _store;
+        private Dictionary<string, Tuple<Type, Widget>> _items;
+        private Notebook _notebook;
 
         //public MMALCamera MMALCamera = MMALCamera.Instance;
 
-        public bool ReloadConfig { get; set; }
-
-        public static ConfigForm Create()
+        public static bool ReloadConfig { get; set; }
+        
+        public ConfigForm() : base(WindowType.Toplevel)
         {
-            Builder builder = new Builder(null, "MakeACameraWithPiZero.MakeACameraWithPiZero.glade", null);
-            return new ConfigForm(builder, builder.GetObject("window1").Handle);
-        }
+            // Setup GUI
+            WindowPosition = WindowPosition.Center;
+            DefaultSize = new Gdk.Size(800, 600);
 
-        /// <summary>Specialised constructor for use only by derived class.</summary>
-        /// <param name="builder"> The builder. </param>
-        /// <param name="handle">  The handle. </param>
-        protected ConfigForm(Builder builder, IntPtr handle) : base(handle)
-        {
-            Application.Init();
+            _headerBar = new HeaderBar();
+            _headerBar.ShowCloseButton = true;
+            _headerBar.Title = "GtkSharp Sample Application";
 
-            this._builder = builder;
-            builder.Autoconnect(this);
-                        
-            //this.ConfigureButton();
-            this.InitialiseComboBoxes();
-            this.SetupHandlers();
+            var btnClickMe = new Button();
+            btnClickMe.AlwaysShowImage = true;
+            btnClickMe.Image = Image.NewFromIconName("document-new-symbolic", IconSize.Button);
+            _headerBar.PackStart(btnClickMe);
 
-            Application.Run();
+            Titlebar = _headerBar;
+
+            var hpanned = new HPaned();
+            hpanned.Position = 200;
+
+            _treeView = new TreeView();
+            _treeView.HeadersVisible = false;
+            hpanned.Pack1(_treeView, false, true);
+
+            _notebook = new Notebook();
+
+            var scroll1 = new ScrolledWindow();
+            var vpanned = new VPaned();
+            vpanned.Position = 300;
+            _boxContent = new Box(Orientation.Vertical, 0);
+            _boxContent.Margin = 8;
+            vpanned.Pack1(_boxContent, true, true);            
+            scroll1.Child = vpanned;
+            _notebook.AppendPage(scroll1, new Label { Text = "Data", Expand = true });
+                      
+            hpanned.Pack2(_notebook, true, true);
+
+            Child = hpanned;
+
+            // Fill up data
+            FillUpTreeView();
+
+            // Connect events
+            _treeView.Selection.Changed += Selection_Changed;
+            Destroyed += (sender, e) => Application.Quit();
         }
 
         /*private void ConfigureButton()
@@ -105,151 +111,90 @@ namespace MakeACameraWithPiZero
             this._buttonConnection = new GpioConnection(switchButton);
         }*/
 
-        private void InitialiseComboBoxes()
+        //private void InitialiseComboBoxes()
+        //{ 
+        //    // Effects ComboBox
+        //    var effectsModel = new ListStore(typeof(int),
+        //                                     typeof(string));
+
+        //    this.effectsCombo.Model = effectsModel;
+
+        //    foreach (MMAL_PARAM_IMAGEFX_T effect in Enum.GetValues(typeof(MMAL_PARAM_IMAGEFX_T)))
+        //    {
+        //        effectsModel.AppendValues(effect, effect.ToString());
+        //    }
+
+
+        //}
+
+        private void Selection_Changed(object sender, EventArgs e)
         {
-            // Sharpness ComboBox
-            var sharpnessModel = new ListStore(typeof(int),
-                                               typeof(string));
-
-            this._sharpnessCombo.Model = sharpnessModel;
-
-            for (int i = 0; i <= 10; i++)
+            if (_treeView.Selection.GetSelected(out TreeIter iter))
             {
-                sharpnessModel.AppendValues(i * 10, (i * 10).ToString());
+                var s = _store.GetValue(iter, 0).ToString();
+
+                while (_boxContent.Children.Length > 0)
+                    _boxContent.Remove(_boxContent.Children[0]);
+                _notebook.CurrentPage = 0;
+                _notebook.ShowTabs = false;
+
+                if (_items.TryGetValue(s, out var item))
+                {
+                    _notebook.ShowTabs = true;
+
+                    if (item.Item2 == null)
+                        _items[s] = item = new Tuple<System.Type, Widget>(item.Item1, Activator.CreateInstance(item.Item1) as Widget);
+
+                    _boxContent.PackStart(item.Item2, true, true, 0);
+                    _boxContent.ShowAll();
+                }
+
+            }
+        }
+
+        private void FillUpTreeView()
+        {
+            // Init cells
+            var cellName = new CellRendererText();
+
+            // Init columns
+            var columeSections = new TreeViewColumn();
+            columeSections.Title = "Sections";
+            columeSections.PackStart(cellName, true);
+
+            columeSections.AddAttribute(cellName, "text", 0);
+
+            _treeView.AppendColumn(columeSections);
+
+            // Init treeview
+            _store = new TreeStore(typeof(string));
+            _treeView.Model = _store;
+
+            // Setup category base
+            var dict = new Dictionary<Category, TreeIter>();
+            foreach (var category in Enum.GetValues(typeof(Category)))
+                dict[(Category)category] = _store.AppendValues(category.ToString());
+
+            // Fill up categories
+            _items = new Dictionary<string, Tuple<Type, Widget>>();
+            var maintype = typeof(SectionAttribute);
+
+            foreach (var type in maintype.Assembly.GetTypes())
+            {
+                foreach (var attribute in type.GetCustomAttributes(true))
+                {
+                    if (attribute is SectionAttribute a)
+                    {
+                        _store.AppendValues(dict[a.Category], a.ContentType.Name);
+                        _items[a.ContentType.Name] = new Tuple<System.Type, Widget>(type, null);
+                    }
+                }
             }
 
-            // Set the default value for this combo box
-            this._sharpnessCombo.Active = 4;
-
-            // Contrast ComboBox
-            var contrastModel = new ListStore(typeof(int),
-                                              typeof(string));
-
-            this._contrastCombo.Model = contrastModel;
-
-            for (int i = 0; i <= 10; i++)
-            {
-                contrastModel.AppendValues(i * 10, (i * 10).ToString());
-            }
-
-            this._contrastCombo.Active = 4;
-
-            // Brightness ComboBox
-            var brightnessModel = new ListStore(typeof(int),
-                                                typeof(string));
-
-            this._brightnessCombo.Model = brightnessModel;
-
-            for (int i = 0; i <= 10; i++)
-            {
-                brightnessModel.AppendValues(i * 10, (i * 10).ToString());
-            }
-
-            this._brightnessCombo.Active = 4;
-
-            // Saturation ComboBox
-            var saturationModel = new ListStore(typeof(int),
-                                                typeof(string));
-
-            this._saturationCombo.Model = saturationModel;
-
-            for (int i = 0; i <= 10; i++)
-            {
-                saturationModel.AppendValues(i * 10, (i * 10).ToString());
-            }
-
-            this._saturationCombo.Active = 4;
-
-            // ISO ComboBox
-            var isoModel = new ListStore(typeof(int),
-                                         typeof(string));
-
-            this._isoCombo.Model = isoModel;
-
-            isoModel.AppendValues(100, "100");
-            isoModel.AppendValues(200, "200");
-            isoModel.AppendValues(400, "400");
-            isoModel.AppendValues(800, "800");
-
-            this._isoCombo.Active = 0;
-
-            // Effects ComboBox
-            var effectsModel = new ListStore(typeof(int),
-                                             typeof(string));
-
-            this._effectsCombo.Model = effectsModel;
-
-            foreach (MMAL_PARAM_IMAGEFX_T effect in Enum.GetValues(typeof(MMAL_PARAM_IMAGEFX_T)))
-            {
-                effectsModel.AppendValues(effect, effect.ToString());
-            }
-
-            // Image size ComboBox
-            var imageSizeModel = new ListStore(typeof(string),
-                                               typeof(string));
-
-            this._imageSizeCombo.Model = imageSizeModel;
-
-            imageSizeModel.AppendValues("3264,2448", "8 Megapixel");
-            imageSizeModel.AppendValues("3072,2304", "7 Megapixel");
-            imageSizeModel.AppendValues("3032,2008", "6 Megapixel");
-            imageSizeModel.AppendValues("2560,1920", "5 Megapixel");
-            imageSizeModel.AppendValues("2240,1680", "4 Megapixel");
-            imageSizeModel.AppendValues("2048,1536", "3 Megapixel");
-            imageSizeModel.AppendValues("1600,1200", "2 Megapixel");
-            imageSizeModel.AppendValues("1280,960", "1 Megapixel");
-            imageSizeModel.AppendValues("640,480", "0.3 Megapixel");
-
-            this._imageSizeCombo.Active = 0;
+            _treeView.ExpandAll();
         }
 
-        /// <summary> Sets up the handlers. </summary>
-        private void SetupHandlers()
-        {
-            this.DeleteEvent += this.OnDestroy;
-            this._sharpnessCombo.Changed += new EventHandler(this.OnSharpnessChanged);
-            this._contrastCombo.Changed += new EventHandler(this.OnContrastChanged);
-            this._brightnessCombo.Changed += new EventHandler(this.OnBrightnessChanged);
-            this._saturationCombo.Changed += new EventHandler(this.OnSaturationChanged);
-            this._isoCombo.Changed += new EventHandler(this.OnISOChanged);
-            this._effectsCombo.Changed += new EventHandler(this.OnEffectChanged);
-            this._imageSizeCombo.Changed += new EventHandler(this.OnImageSizeChanged);
-        }
 
-        public void OnSharpnessChanged(object o, EventArgs args)
-        {
-            this.ReloadConfig = true;
-        }
-
-        public void OnBrightnessChanged(object o, EventArgs args)
-        {
-            this.ReloadConfig = true;
-        }
-
-        public void OnContrastChanged(object o, EventArgs args)
-        {
-            this.ReloadConfig = true;
-        }
-
-        public void OnSaturationChanged(object o, EventArgs args)
-        {
-            this.ReloadConfig = true;
-        }
-
-        public void OnISOChanged(object o, EventArgs args)
-        {
-            this.ReloadConfig = true;
-        }
-
-        public void OnEffectChanged(object o, EventArgs args)
-        {
-            this.ReloadConfig = true;
-        }
-
-        public void OnImageSizeChanged(object o, EventArgs args)
-        {
-            this.ReloadConfig = true;
-        }
 
         public void OnDestroy(object o, DeleteEventArgs args)
         {

@@ -10,7 +10,7 @@
     <RootNamespace>MakeACameraWithPiZero</RootNamespace>
     <ApplicationIcon />
     <OutputTypeEx>exe</OutputTypeEx>
-    <StartupObject>MakeACameraWithPiZero.Program</StartupObject>
+    <StartupObject>SwitchCam.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Platform)'=='AnyCPU'">
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -26,17 +26,32 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="MakeACameraWithPiZero.glade" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="MakeACameraWithPiZero.glade" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="gtk-sharp.Linux.3.14" Version="3.14.7" />
-    <PackageReference Include="GtkSharp.Win32" Version="3.1.2" />
     <PackageReference Include="Raspberry.System" Version="2.1.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="AtkSharp">
+      <HintPath>..\..\GtkSharp\BuildOutput\Debug\AtkSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="CairoSharp">
+      <HintPath>..\..\GtkSharp\BuildOutput\Debug\CairoSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="GdkSharp">
+      <HintPath>..\..\GtkSharp\BuildOutput\Debug\GdkSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="GioSharp">
+      <HintPath>..\..\GtkSharp\BuildOutput\Debug\GioSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="GLibSharp">
+      <HintPath>..\..\GtkSharp\BuildOutput\Debug\GLibSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="GtkSharp">
+      <HintPath>..\..\GtkSharp\BuildOutput\Debug\GtkSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="PangoSharp">
+      <HintPath>..\..\GtkSharp\BuildOutput\Debug\PangoSharp.dll</HintPath>
+    </Reference>
   </ItemGroup>    
 </Project>
