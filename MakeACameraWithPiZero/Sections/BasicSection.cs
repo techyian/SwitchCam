@@ -4,7 +4,7 @@ using System;
 
 namespace SwitchCam
 {
-    [Section(ContentType = typeof(ComboBox), Category = Category.Basic)]
+    [Section(ContentType = typeof(ComboBox), Category = Category.Basic, Description = "Settings")]
     public class BasicSection : ListSection
     {
         public BasicSection()
@@ -12,6 +12,7 @@ namespace SwitchCam
             AddItem(CreateBrightness());
             AddItem(CreateContrast());
             AddItem(CreateISO());
+            AddItem(CreateShutterSpeed());
             AddItem(CreateSaturation());
             AddItem(CreateSharpness());
             AddItem(CreateSize());
@@ -168,6 +169,38 @@ namespace SwitchCam
             return new Tuple<string, Widget>("ISO", dropdown);
         }
 
+        public Tuple<string, Widget> CreateShutterSpeed()
+        {
+            var dropdown = new ComboBox();
+            dropdown.Changed += (sender, e) =>
+            {
+                var value = this.GetDropdownValue(dropdown);
+                MMALCameraConfig.ShutterSpeed = int.Parse(value);
+                ConfigForm.ReloadConfig = true;
+            };
+
+            // ISO ComboBox
+            var isoModel = new ListStore(typeof(int),
+                                         typeof(string));
+
+            dropdown.Model = isoModel;
+
+            isoModel.AppendValues(1000000, "1000000");
+            isoModel.AppendValues(2000000, "2000000");
+            isoModel.AppendValues(3000000, "3000000");
+            isoModel.AppendValues(4000000, "4000000");
+            isoModel.AppendValues(5000000, "5000000");
+            isoModel.AppendValues(6000000, "6000000");
+
+            dropdown.Active = 0;
+
+            CellRendererText text = new CellRendererText();
+            dropdown.PackStart(text, false);
+            dropdown.AddAttribute(text, "text", 0);
+
+            return new Tuple<string, Widget>("Shutter speed", dropdown);
+        }
+
         public Tuple<string, Widget> CreateSize()
         {
             var dropdown = new ComboBox();
@@ -203,13 +236,6 @@ namespace SwitchCam
             dropdown.AddAttribute(text, "text", 1);
 
             return new Tuple<string, Widget>("Resolution", dropdown);
-        }
-
-        private string GetDropdownValue(ComboBox dropdown)
-        {
-            TreeIter tree;
-            dropdown.GetActiveIter(out tree);
-            return dropdown.Model.GetValue(tree, 1).ToString();
-        }
+        }                
     }
 }

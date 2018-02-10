@@ -7,6 +7,8 @@ namespace SwitchCam
 {
     class SectionAttribute : Attribute
     {
+        public string Description { get; set; }
+
         public Type ContentType { get; set; }
 
         public Category Category { get; set; }

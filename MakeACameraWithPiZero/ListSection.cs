@@ -45,5 +45,12 @@ namespace SwitchCam
             _grid.Attach(hbox, 1, _position, 1, 1);
             _position++;
         }
+
+        public string GetDropdownValue(ComboBox dropdown)
+        {
+            TreeIter tree;
+            dropdown.GetActiveIter(out tree);
+            return dropdown.Model.GetValue(tree, 1).ToString();
+        }
     }
 }

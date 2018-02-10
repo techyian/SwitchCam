@@ -33,11 +33,11 @@ namespace SwitchCam
         {
             // Setup GUI
             WindowPosition = WindowPosition.Center;
-            DefaultSize = new Gdk.Size(800, 600);
+            DefaultSize = new Gdk.Size(400, 275);
 
             _headerBar = new HeaderBar();
             _headerBar.ShowCloseButton = true;
-            _headerBar.Title = "GtkSharp Sample Application";
+            _headerBar.Title = "SwitchCam";
 
             var btnClickMe = new Button();
             btnClickMe.AlwaysShowImage = true;
@@ -45,6 +45,10 @@ namespace SwitchCam
             _headerBar.PackStart(btnClickMe);
 
             Titlebar = _headerBar;
+
+            var vpanned1 = new VPaned();
+            vpanned1.Position = 200;
+
 
             var hpanned = new HPaned();
             hpanned.Position = 200;
@@ -60,23 +64,34 @@ namespace SwitchCam
             vpanned.Position = 300;
             _boxContent = new Box(Orientation.Vertical, 0);
             _boxContent.Margin = 8;
-            vpanned.Pack1(_boxContent, true, true);            
+            vpanned.Pack1(_boxContent, false, false);
             scroll1.Child = vpanned;
             _notebook.AppendPage(scroll1, new Label { Text = "Data", Expand = true });
-                      
+
             hpanned.Pack2(_notebook, true, true);
 
-            Child = hpanned;
+            vpanned1.Pack1(hpanned, false, true);
 
+            var box = new Box(Orientation.Horizontal, 0);
+            box.Margin = 8;
+            vpanned1.Pack2(box, true, true);
+
+            var btn = new Button("Take picture");
+            btn.Clicked += TakePicture;
+
+            box.PackStart(btn, true, true, 0);
+
+            Child = vpanned1;
+                        
             // Fill up data
             FillUpTreeView();
 
             // Connect events
             _treeView.Selection.Changed += Selection_Changed;
-            Destroyed += (sender, e) => Application.Quit();
+            Destroyed += OnDestroy;            
         }
 
-        /*private void ConfigureButton()
+        private void ConfigureButton()
         {
             var switchButton = buttonPin.Input()
                   .Name("Switch")
@@ -84,48 +99,32 @@ namespace SwitchCam
                   .Switch()
                   .Enable()
                   .OnStatusChanged(b =>
-                  {
+                  {                      
                       Console.WriteLine("Button switched {0}", b ? "on" : "off");
 
-                      AsyncContext.Run(async () =>
-                      {
-                          using (var imgCaptureHandler = new ImageStreamCaptureHandler("/home/pi/images/", "jpg"))
-                          using (var imgEncoder = new MMALImageEncoder(imgCaptureHandler))
-                          using (var nullSink = new MMALNullSinkComponent())
-                          {
-                              this.MMALCamera.ConfigureCameraSettings();
+                      //AsyncContext.Run(async () =>
+                      //{
+                      //    using (var imgCaptureHandler = new ImageStreamCaptureHandler("/home/pi/images/", "jpg"))
+                      //    using (var imgEncoder = new MMALImageEncoder(imgCaptureHandler))
+                      //    using (var nullSink = new MMALNullSinkComponent())
+                      //    {
+                      //        this.MMALCamera.ConfigureCameraSettings();
 
-                              // Create our component pipeline.
-                              imgEncoder.ConfigureOutputPort(0, MMALEncoding.JPEG, MMALEncoding.I420, 90);
+                      //        // Create our component pipeline.
+                      //        imgEncoder.ConfigureOutputPort(0, MMALEncoding.JPEG, MMALEncoding.I420, 90);
 
-                              this.MMALCamera.Camera.StillPort.ConnectTo(imgEncoder);
-                              this.MMALCamera.Camera.PreviewPort.ConnectTo(nullSink);
+                      //        this.MMALCamera.Camera.StillPort.ConnectTo(imgEncoder);
+                      //        this.MMALCamera.Camera.PreviewPort.ConnectTo(nullSink);
 
-                              // Camera warm up time
-                              await Task.Delay(2000);
-                              await this.MMALCamera.BeginProcessing(this.MMALCamera.Camera.StillPort);
-                          }
-                      });
+                      //        // Camera warm up time
+                      //        await Task.Delay(2000);
+                      //        await this.MMALCamera.BeginProcessing(this.MMALCamera.Camera.StillPort);
+                      //    }
+                      //});
                   });
 
             this._buttonConnection = new GpioConnection(switchButton);
-        }*/
-
-        //private void InitialiseComboBoxes()
-        //{ 
-        //    // Effects ComboBox
-        //    var effectsModel = new ListStore(typeof(int),
-        //                                     typeof(string));
-
-        //    this.effectsCombo.Model = effectsModel;
-
-        //    foreach (MMAL_PARAM_IMAGEFX_T effect in Enum.GetValues(typeof(MMAL_PARAM_IMAGEFX_T)))
-        //    {
-        //        effectsModel.AppendValues(effect, effect.ToString());
-        //    }
-
-
-        //}
+        }
 
         private void Selection_Changed(object sender, EventArgs e)
         {
@@ -185,8 +184,8 @@ namespace SwitchCam
                 {
                     if (attribute is SectionAttribute a)
                     {
-                        _store.AppendValues(dict[a.Category], a.ContentType.Name);
-                        _items[a.ContentType.Name] = new Tuple<System.Type, Widget>(type, null);
+                        _store.AppendValues(dict[a.Category], a.Description);
+                        _items[a.Description] = new Tuple<System.Type, Widget>(type, null);
                     }
                 }
             }
@@ -194,9 +193,35 @@ namespace SwitchCam
             _treeView.ExpandAll();
         }
 
+        private void TakePicture(object sender, EventArgs e)
+        {
+            //if (ReloadConfig)
+            //{
+            //    this.MMALCamera.ConfigureCameraSettings();
+            //}
 
+            //AsyncContext.Run(async () =>
+            //{
+            //    using (var imgCaptureHandler = new ImageStreamCaptureHandler("/home/pi/images/", "jpg"))
+            //    using (var imgEncoder = new MMALImageEncoder(imgCaptureHandler))
+            //    using (var nullSink = new MMALNullSinkComponent())
+            //    {
+            //        this.MMALCamera.ConfigureCameraSettings();
 
-        public void OnDestroy(object o, DeleteEventArgs args)
+            //        // Create our component pipeline.
+            //        imgEncoder.ConfigureOutputPort(0, MMALEncoding.JPEG, MMALEncoding.I420, 90);
+
+            //        this.MMALCamera.Camera.StillPort.ConnectTo(imgEncoder);
+            //        this.MMALCamera.Camera.PreviewPort.ConnectTo(nullSink);
+
+            //        // Camera warm up time
+            //        await Task.Delay(2000);
+            //        await this.MMALCamera.BeginProcessing(this.MMALCamera.Camera.StillPort);
+            //    }
+            //});
+        }
+
+        public void OnDestroy(object o, EventArgs args)
         {
             Console.WriteLine("OnDestroy");
             //this.MMALCamera.Cleanup();
