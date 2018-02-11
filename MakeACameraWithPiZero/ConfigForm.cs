@@ -33,7 +33,7 @@ namespace SwitchCam
         {
             // Setup GUI
             WindowPosition = WindowPosition.Center;
-            DefaultSize = new Gdk.Size(400, 275);
+            DefaultSize = new Gdk.Size(500, 350);
 
             _headerBar = new HeaderBar();
             _headerBar.ShowCloseButton = true;
@@ -47,11 +47,10 @@ namespace SwitchCam
             Titlebar = _headerBar;
 
             var vpanned1 = new VPaned();
-            vpanned1.Position = 200;
-
-
+            vpanned1.Position = 300;
+            
             var hpanned = new HPaned();
-            hpanned.Position = 200;
+            hpanned.Position = 100;
 
             _treeView = new TreeView();
             _treeView.HeadersVisible = false;
@@ -68,27 +67,35 @@ namespace SwitchCam
             scroll1.Child = vpanned;
             _notebook.AppendPage(scroll1, new Label { Text = "Data", Expand = true });
 
-            hpanned.Pack2(_notebook, true, true);
+            hpanned.Pack2(_notebook, false, true);
 
             vpanned1.Pack1(hpanned, false, true);
 
             var box = new Box(Orientation.Horizontal, 0);
             box.Margin = 8;
-            vpanned1.Pack2(box, true, true);
+            vpanned1.Pack2(box, false, true);
+
+            var grid = new Grid
+            {
+                RowSpacing = 2,
+                ColumnSpacing = 2
+            };
+
+            box.PackStart(grid, false, false, 0);
 
             var btn = new Button("Take picture");
             btn.Clicked += TakePicture;
 
-            box.PackStart(btn, true, true, 0);
+            grid.Attach(btn, 0, 0, 1, 1);
 
             Child = vpanned1;
-                        
+
             // Fill up data
             FillUpTreeView();
 
             // Connect events
             _treeView.Selection.Changed += Selection_Changed;
-            Destroyed += OnDestroy;            
+            Destroyed += OnDestroy;
         }
 
         private void ConfigureButton()
