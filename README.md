@@ -15,6 +15,7 @@ The SwitchCam is a fully functioning camera featuring the following:
 
 
 ![alt text](https://pbs.twimg.com/media/DVRGeAkWAAA8gDb.jpg:large "SwitchCam")
+![alt text](https://pbs.twimg.com/media/DVRGef4WAAATEhd.jpg:large "SwitchCam 2")
 ![alt text](https://pbs.twimg.com/media/DVrqCkdW4AA1APT.jpg:large "SwitchCam GUI")
 
 
