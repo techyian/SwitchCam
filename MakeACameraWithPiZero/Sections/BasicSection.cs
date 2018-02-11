@@ -40,7 +40,7 @@ namespace SwitchCam
             }
 
             // Set the default value for this combo box
-            dropdown.Active = 4;
+            dropdown.Active = 5;
 
             CellRendererText text = new CellRendererText();
             dropdown.PackStart(text, false);
@@ -70,7 +70,7 @@ namespace SwitchCam
                 contrastModel.AppendValues(i * 10, (i * 10).ToString());
             }
 
-            dropdown.Active = 4;
+            dropdown.Active = 5;
 
             CellRendererText text = new CellRendererText();
             dropdown.PackStart(text, false);
@@ -100,7 +100,7 @@ namespace SwitchCam
                 brightnessModel.AppendValues(i * 10, (i * 10).ToString());
             }
 
-            dropdown.Active = 4;
+            dropdown.Active = 5;
 
             CellRendererText text = new CellRendererText();
             dropdown.PackStart(text, false);
@@ -130,7 +130,7 @@ namespace SwitchCam
                 saturationModel.AppendValues(i * 10, (i * 10).ToString());
             }
 
-            dropdown.Active = 4;
+            dropdown.Active = 5;
 
             CellRendererText text = new CellRendererText();
             dropdown.PackStart(text, false);
@@ -150,15 +150,16 @@ namespace SwitchCam
             };
 
             // ISO ComboBox
-            var isoModel = new ListStore(typeof(int),
+            var isoModel = new ListStore(typeof(string),
                                          typeof(string));
 
             dropdown.Model = isoModel;
 
-            isoModel.AppendValues(100, "100");
-            isoModel.AppendValues(200, "200");
-            isoModel.AppendValues(400, "400");
-            isoModel.AppendValues(800, "800");
+            isoModel.AppendValues("Auto", "0");
+            isoModel.AppendValues("100", "100");
+            isoModel.AppendValues("200", "200");
+            isoModel.AppendValues("400", "400");
+            isoModel.AppendValues("800", "800");
 
             dropdown.Active = 0;
 
@@ -179,18 +180,19 @@ namespace SwitchCam
                 ConfigForm.ReloadConfig = true;
             };
 
-            // ISO ComboBox
-            var isoModel = new ListStore(typeof(int),
+            // Shutter speed ComboBox
+            var isoModel = new ListStore(typeof(string),
                                          typeof(string));
 
             dropdown.Model = isoModel;
 
-            isoModel.AppendValues(1000000, "1000000");
-            isoModel.AppendValues(2000000, "2000000");
-            isoModel.AppendValues(3000000, "3000000");
-            isoModel.AppendValues(4000000, "4000000");
-            isoModel.AppendValues(5000000, "5000000");
-            isoModel.AppendValues(6000000, "6000000");
+            isoModel.AppendValues("Auto", "0");
+            isoModel.AppendValues("1s", "1000000");
+            isoModel.AppendValues("2s", "2000000");
+            isoModel.AppendValues("3s", "3000000");
+            isoModel.AppendValues("4s", "4000000");
+            isoModel.AppendValues("5s", "5000000");
+            isoModel.AppendValues("6s", "6000000");
 
             dropdown.Active = 0;
 
@@ -229,7 +231,7 @@ namespace SwitchCam
             imageSizeModel.AppendValues(7, "1280 x 960");
             imageSizeModel.AppendValues(8, "640 x 480");
 
-            dropdown.Active = 0;
+            dropdown.Active = 3;
 
             CellRendererText text = new CellRendererText();
             dropdown.PackStart(text, false);

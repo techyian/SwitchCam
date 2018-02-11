@@ -25,7 +25,7 @@ namespace SwitchCam
         private Dictionary<string, Tuple<Type, Widget>> _items;
         private Notebook _notebook;
 
-        //public MMALCamera MMALCamera = MMALCamera.Instance;
+        public MMALCamera MMALCamera = MMALCamera.Instance;
 
         public static bool ReloadConfig { get; set; }
         
@@ -202,36 +202,37 @@ namespace SwitchCam
 
         private void TakePicture(object sender, EventArgs e)
         {
-            //if (ReloadConfig)
-            //{
-            //    this.MMALCamera.ConfigureCameraSettings();
-            //}
+            if (ReloadConfig)
+            {
+                this.MMALCamera.ConfigureCameraSettings();
+                ConfigForm.ReloadConfig = false;
+            }
 
-            //AsyncContext.Run(async () =>
-            //{
-            //    using (var imgCaptureHandler = new ImageStreamCaptureHandler("/home/pi/images/", "jpg"))
-            //    using (var imgEncoder = new MMALImageEncoder(imgCaptureHandler))
-            //    using (var nullSink = new MMALNullSinkComponent())
-            //    {
-            //        this.MMALCamera.ConfigureCameraSettings();
+            AsyncContext.Run(async () =>
+            {
+                using (var imgCaptureHandler = new ImageStreamCaptureHandler("/home/pi/images/", "jpg"))
+                using (var imgEncoder = new MMALImageEncoder(imgCaptureHandler))
+                using (var renderer = new MMALVideoRenderer())
+                {
+                    this.MMALCamera.ConfigureCameraSettings();
 
-            //        // Create our component pipeline.
-            //        imgEncoder.ConfigureOutputPort(0, MMALEncoding.JPEG, MMALEncoding.I420, 90);
+                    // Create our component pipeline.
+                    imgEncoder.ConfigureOutputPort(0, MMALEncoding.JPEG, MMALEncoding.I420, 90);
 
-            //        this.MMALCamera.Camera.StillPort.ConnectTo(imgEncoder);
-            //        this.MMALCamera.Camera.PreviewPort.ConnectTo(nullSink);
+                    this.MMALCamera.Camera.StillPort.ConnectTo(imgEncoder);
+                    this.MMALCamera.Camera.PreviewPort.ConnectTo(renderer);
 
-            //        // Camera warm up time
-            //        await Task.Delay(2000);
-            //        await this.MMALCamera.BeginProcessing(this.MMALCamera.Camera.StillPort);
-            //    }
-            //});
+                    // Camera warm up time
+                    await Task.Delay(5000);
+                    await this.MMALCamera.BeginProcessing(this.MMALCamera.Camera.StillPort);
+                }
+            });
         }
 
         public void OnDestroy(object o, EventArgs args)
         {
             Console.WriteLine("OnDestroy");
-            //this.MMALCamera.Cleanup();
+            this.MMALCamera.Cleanup();
             //this._buttonConnection.Close();
             Application.Quit();
         }

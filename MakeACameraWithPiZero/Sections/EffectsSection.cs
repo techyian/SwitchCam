@@ -41,8 +41,11 @@ namespace MakeACameraWithPiZero.Sections
             var enums = Enum.GetValues(typeof(MMAL_PARAM_IMAGEFX_T)).Cast<MMAL_PARAM_IMAGEFX_T>().ToList();
             for (var i = 0; i < enums.Count; i++)
             {
-                effectsModel.AppendValues(enums[i].ToString(), enums[i].ToString());
+                var split = enums[i].ToString().Split('_');
+                effectsModel.AppendValues(split.Last(), enums[i].ToString());
             }
+
+            dropdown.Active = 0;
 
             CellRendererText text = new CellRendererText();
             dropdown.PackStart(text, false);
@@ -69,8 +72,11 @@ namespace MakeACameraWithPiZero.Sections
             var enums = Enum.GetValues(typeof(MMAL_PARAM_AWBMODE_T)).Cast<MMAL_PARAM_AWBMODE_T>().ToList();
             for (var i = 0; i < enums.Count; i++)
             {
-                awbModel.AppendValues(enums[i].ToString(), enums[i].ToString());
+                var split = enums[i].ToString().Split('_');
+                awbModel.AppendValues(split.Last(), enums[i].ToString());
             }
+
+            dropdown.Active = 1;
 
             CellRendererText text = new CellRendererText();
             dropdown.PackStart(text, false);
@@ -97,8 +103,11 @@ namespace MakeACameraWithPiZero.Sections
             var enums = Enum.GetValues(typeof(MMAL_PARAM_EXPOSUREMODE_T)).Cast<MMAL_PARAM_EXPOSUREMODE_T>().ToList();
             for (var i = 0; i < enums.Count; i++)
             {
-                expModeModel.AppendValues(enums[i].ToString(), enums[i].ToString());
+                var split = enums[i].ToString().Split('_');
+                expModeModel.AppendValues(split.Last(), enums[i].ToString());
             }
+
+            dropdown.Active = 1;
 
             CellRendererText text = new CellRendererText();
             dropdown.PackStart(text, false);
@@ -128,7 +137,7 @@ namespace MakeACameraWithPiZero.Sections
             }
 
             // Set the default value for this combo box
-            dropdown.Active = 0;
+            dropdown.Active = 10;
 
             CellRendererText text = new CellRendererText();
             dropdown.PackStart(text, false);
