@@ -8,16 +8,17 @@ using MMALSharp.Components;
 using MMALSharp.Handlers;
 using MMALSharp.Native;
 using Nito.AsyncEx;
-using Raspberry.IO.GeneralPurpose;
+using Unosquare.RaspberryIO;
+using Unosquare.RaspberryIO.Gpio;
+using Unosquare.RaspberryIO.Peripherals;
 
 namespace SwitchCam
 {
     public class ConfigForm : Window
     {
-        const ConnectorPin buttonPin = ConnectorPin.P1Pin22;
+        private Unosquare.RaspberryIO.Gpio.GpioPin _buttonPin = Pi.Gpio.GetGpioPinByBcmPinNumber(23);
 
-        private GpioConnection _buttonConnection;
-
+        private Unosquare.RaspberryIO.Peripherals.Button _button;
         private HeaderBar _headerBar;
         private TreeView _treeView;
         private Box _boxContent;
@@ -28,7 +29,8 @@ namespace SwitchCam
         public MMALCamera MMALCamera = MMALCamera.Instance;
 
         public static bool ReloadConfig { get; set; }
-        
+        public static bool Processing { get; set; }
+
         public ConfigForm() : base(WindowType.Toplevel)
         {
             // Setup GUI
@@ -39,7 +41,7 @@ namespace SwitchCam
             _headerBar.ShowCloseButton = true;
             _headerBar.Title = "SwitchCam";
 
-            var btnClickMe = new Button();
+            var btnClickMe = new Gtk.Button();
             btnClickMe.AlwaysShowImage = true;
             btnClickMe.Image = Image.NewFromIconName("document-new-symbolic", IconSize.Button);
             _headerBar.PackStart(btnClickMe);
@@ -83,7 +85,7 @@ namespace SwitchCam
 
             box.PackStart(grid, false, false, 0);
 
-            var btn = new Button("Take picture");
+            var btn = new Gtk.Button("Take Picture");
             btn.Clicked += TakePicture;
 
             grid.Attach(btn, 0, 0, 1, 1);
@@ -96,41 +98,67 @@ namespace SwitchCam
             // Connect events
             _treeView.Selection.Changed += Selection_Changed;
             Destroyed += OnDestroy;
+
+            try
+            {
+                ConfigureButton();
+            }
+            catch (Exception e)
+            {
+                MMALLog.Logger.Debug($"Something went wrong while configuring the button. {e.Message} {e.StackTrace}");
+            }
         }
 
         private void ConfigureButton()
         {
-            var switchButton = buttonPin.Input()
-                  .Name("Switch")
-                  .Revert()
-                  .Switch()
-                  .Enable()
-                  .OnStatusChanged(b =>
-                  {                      
-                      Console.WriteLine("Button switched {0}", b ? "on" : "off");
+            _buttonPin.PinMode = GpioPinDriveMode.Input;
+            _button = new Unosquare.RaspberryIO.Peripherals.Button(_buttonPin);
+            _buttonPin.InputPullMode = GpioPinResistorPullMode.PullUp;
 
-                      //AsyncContext.Run(async () =>
-                      //{
-                      //    using (var imgCaptureHandler = new ImageStreamCaptureHandler("/home/pi/images/", "jpg"))
-                      //    using (var imgEncoder = new MMALImageEncoder(imgCaptureHandler))
-                      //    using (var nullSink = new MMALNullSinkComponent())
-                      //    {
-                      //        this.MMALCamera.ConfigureCameraSettings();
+            MMALLog.Logger.Debug($"Input button configured");
 
-                      //        // Create our component pipeline.
-                      //        imgEncoder.ConfigureOutputPort(0, MMALEncoding.JPEG, MMALEncoding.I420, 90);
+            _button.Released += (s, e) =>
+            {
+                MMALLog.Logger.Debug($"Button released");
+            };
 
-                      //        this.MMALCamera.Camera.StillPort.ConnectTo(imgEncoder);
-                      //        this.MMALCamera.Camera.PreviewPort.ConnectTo(nullSink);
+            _button.Pressed += (s, e) =>
+            {
+                MMALLog.Logger.Debug($"Button pressed");
 
-                      //        // Camera warm up time
-                      //        await Task.Delay(2000);
-                      //        await this.MMALCamera.BeginProcessing(this.MMALCamera.Camera.StillPort);
-                      //    }
-                      //});
-                  });
+                if (Processing)
+                {
+                    return;
+                }
 
-            this._buttonConnection = new GpioConnection(switchButton);
+                Processing = true;
+
+                if (ReloadConfig)
+                {
+                    this.MMALCamera.ConfigureCameraSettings();
+                    ConfigForm.ReloadConfig = false;
+                }
+
+                AsyncContext.Run(async () =>
+                {
+                    using (var imgCaptureHandler = new ImageStreamCaptureHandler("/home/pi/images/", "jpg"))
+                    using (var imgEncoder = new MMALImageEncoder(imgCaptureHandler))
+                    using (var renderer = new MMALVideoRenderer())
+                    {
+                        this.MMALCamera.ConfigureCameraSettings();
+
+                        // Create our component pipeline.
+                        imgEncoder.ConfigureOutputPort(0, MMALEncoding.JPEG, MMALEncoding.I420, 90);
+
+                        this.MMALCamera.Camera.StillPort.ConnectTo(imgEncoder);
+                        this.MMALCamera.Camera.PreviewPort.ConnectTo(renderer);
+
+                        await Task.Delay(2000);
+                        await this.MMALCamera.BeginProcessing(this.MMALCamera.Camera.StillPort);
+                        Processing = false;
+                    }
+                });
+            };
         }
 
         private void Selection_Changed(object sender, EventArgs e)
@@ -208,32 +236,33 @@ namespace SwitchCam
                 ConfigForm.ReloadConfig = false;
             }
 
-            AsyncContext.Run(async () =>
+            using (var imgCaptureHandler = new ImageStreamCaptureHandler("/home/pi/images/", "jpg"))
+            using (var imgEncoder = new MMALImageEncoder(imgCaptureHandler))
+            using (var renderer = new MMALVideoRenderer())
             {
-                using (var imgCaptureHandler = new ImageStreamCaptureHandler("/home/pi/images/", "jpg"))
-                using (var imgEncoder = new MMALImageEncoder(imgCaptureHandler))
-                using (var renderer = new MMALVideoRenderer())
+                this.MMALCamera.ConfigureCameraSettings();
+
+                // Create our component pipeline.
+                imgEncoder.ConfigureOutputPort(0, MMALEncoding.JPEG, MMALEncoding.I420, 90);
+
+                this.MMALCamera.Camera.StillPort.ConnectTo(imgEncoder);
+                this.MMALCamera.Camera.PreviewPort.ConnectTo(renderer);
+
+                Task.Factory.Run(async () =>
                 {
-                    this.MMALCamera.ConfigureCameraSettings();
-
-                    // Create our component pipeline.
-                    imgEncoder.ConfigureOutputPort(0, MMALEncoding.JPEG, MMALEncoding.I420, 90);
-
-                    this.MMALCamera.Camera.StillPort.ConnectTo(imgEncoder);
-                    this.MMALCamera.Camera.PreviewPort.ConnectTo(renderer);
-
                     // Camera warm up time
                     await Task.Delay(5000);
                     await this.MMALCamera.BeginProcessing(this.MMALCamera.Camera.StillPort);
-                }
-            });
+                });
+            }
+            
         }
 
         public void OnDestroy(object o, EventArgs args)
         {
             Console.WriteLine("OnDestroy");
             this.MMALCamera.Cleanup();
-            //this._buttonConnection.Close();
+            Pi.Gpio.Dispose();
             Application.Quit();
         }
     }
